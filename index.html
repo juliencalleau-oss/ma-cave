@@ -5,7 +5,7 @@
 <script>
 const K="ma-cave-v4",OLD="ma-cave-v3";
 let bottles=JSON.parse(localStorage.getItem(K)||"null");
-bottles=bottles.map(b=>{const zoneMap={1:8,2:1,3:2,4:3,5:4,6:5,7:6,8:7};return {...b,zone:zoneMap[b.zone]||b.zone}});if(!bottles){bottles=JSON.parse(localStorage.getItem(OLD)||"null")||[{id:1,wine:"Château Grand Pontet",app:"Saint-Émilion Grand Cru",vintage:2019,start:2025,end:2035,zone:3,row:4,pos:2},{id:2,wine:"Château de Lascaux",app:"Pic Saint-Loup",vintage:2023,start:2026,end:2031,zone:5,row:2,pos:5}];}
+if(!bottles){bottles=JSON.parse(localStorage.getItem(OLD)||"null")||[{id:1,wine:"Château Grand Pontet",app:"Saint-Émilion Grand Cru",vintage:2019,start:2025,end:2035,zone:2,row:4,pos:2},{id:2,wine:"Château de Lascaux",app:"Pic Saint-Loup",vintage:2023,start:2026,end:2031,zone:4,row:2,pos:5}];}
 
 let filter=0,subFilter=0,editId=null;
 const inferSub=(b)=>{if(b.subcategory)return b.subcategory;const maps={
@@ -18,7 +18,6 @@ const inferSub=(b)=>{if(b.subcategory)return b.subcategory;const maps={
 7:{"Crémant de Bordeaux":"Crémant de Bordeaux"},
 8:{"Bourgogne":"Bourgogne blanc","Crémant de Bordeaux":"Bordeaux blanc"}
 };return maps[b.zone]?.[b.app]||"Autres";};
-bottles=bottles.map(b=>({...b,subcategory:inferSub(b)}));save();
 const categories=["Bordeaux rive gauche","Bordeaux rive droite","Bourgogne","Rhône & Languedoc-Roussillon","Loire & autres régions françaises","Vins étrangers","Pétillants & champagnes","Blancs"];
 const subcategories={
 1:[["Pauillac",10],["Saint-Julien",8],["Margaux",8],["Saint-Estèphe",6],["Médoc / Haut-Médoc",8],["Pessac-Léognan",8],["Graves",4],["Moulis / Listrac",4],["Autres / coups de cœur",4]],
@@ -30,6 +29,8 @@ const subcategories={
 7:[["Champagne non millésimé",18],["Champagne millésimé",10],["Champagne grandes cuvées",6],["Blanc de blancs",6],["Blanc de noirs",5],["Rosé Champagne",4],["Crémant de Bordeaux",3],["Crémant de Bourgogne",3],["Crémant de Loire / Alsace",3],["Autres pétillants",2]],
 8:[["Bourgogne blanc",12],["Loire blanc",12],["Bordeaux blanc",6],["Rhône blanc",8],["Alsace",6],["Languedoc / Roussillon",4],["Jura",4],["Savoie",3],["Étranger",5]]
 };
+if(localStorage.getItem("ma-cave-structure-v2")!=="1"){const zoneMap={1:8,2:1,3:2,4:3,5:4,6:5,7:6,8:7};bottles=bottles.map(b=>({...b,zone:zoneMap[b.zone]||b.zone}));localStorage.setItem("ma-cave-structure-v2","1");}
+bottles=bottles.map(b=>({...b,subcategory:inferSub(b)}));save();
 const appellations=["Saint-Émilion Grand Cru","Saint-Émilion","Pomerol","Pauillac","Margaux","Saint-Julien","Saint-Estèphe","Pic Saint-Loup","Châteauneuf-du-Pape","Crozes-Hermitage","Saint-Joseph","Vacqueyras","Maranges","Bourgogne","Bordeaux Supérieur","Crémant de Bordeaux","Autre"];
 const $=x=>document.getElementById(x),save=()=>localStorage.setItem(K,JSON.stringify(bottles)),peak=b=>{let y=new Date().getFullYear();return y>=b.start&&y<=b.end};
 function render(){let q=$( "search").value.toLowerCase();$( "count").textContent=bottles.length;$( "free").textContent=480-bottles.length;$( "peak").textContent=bottles.filter(peak).length;$( "chips").innerHTML=["Toutes",...categories].map((name,i)=>{let n=i===0?bottles.length:bottles.filter(b=>b.zone===i).length;let total=i===0?480:60;return '<button class="chip '+(filter===i?"on":"")+'" onclick="setFilter('+i+')">'+name+' · '+n+'/'+total+'</button>'}).join("");if(filter){let subs=subcategories[filter];$( "subchips").innerHTML=[["Toutes",60],...subs].map((s,i)=>{let n=i===0?bottles.filter(b=>b.zone===filter).length:bottles.filter(b=>b.zone===filter&&b.subcategory===s[0]).length;let total=i===0?60:s[1];return '<button class="chip '+(subFilter===i?"on":"")+'" onclick="setSubFilter('+i+')">'+s[0]+' · '+n+(total===null?"":"/"+total)+'</button>'}).join("")}else{$( "subchips").innerHTML=""}let a=bottles.filter(b=>(filter===0||b.zone===filter)&&(filter===0||subFilter===0||b.subcategory===subcategories[filter][subFilter-1][0])&&(!q||(b.wine+" "+b.app+" "+b.vintage+" "+(b.subcategory||"")).toLowerCase().includes(q))).sort((x,y)=>x.zone-y.zone||x.row-y.row||x.pos-y.pos);$( "list").innerHTML=a.length?a.map(card).join(""):'<div class="empty">Aucune bouteille.</div>'}
