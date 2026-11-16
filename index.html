@@ -21,7 +21,7 @@ function closeDetail(){$( "detail").classList.remove("open")}
 function saveBottle(){let w=$( "wine").value.trim(),a=$( "app").value,v=+$( "vintage").value;if(!w||!a||!v){toast("Complète le vin, l'appellation et le millésime.");return}let data={id:editId||Date.now(),wine:w,app:a,vintage:v,start:+$( "start").value||v,end:+$( "end").value||v+8,zone:+$( "zone").value,row:+$( "row").value,pos:+$( "pos").value};if(editId)bottles=bottles.map(b=>b.id===editId?data:b);else bottles.push(data);save();closeModal();closeDetail();render();toast(editId?"Fiche modifiée":"Bouteille ajoutée")}
 function removeBottle(id){let b=bottles.find(x=>x.id===id);if(confirm("Supprimer "+b.wine+" "+b.vintage+" ?")){bottles=bottles.filter(x=>x.id!==id);save();closeDetail();render();toast("Bouteille supprimée")}}
 function locate(id){let b=bottles.find(x=>x.id===id);toast("Zone "+b.zone+" · Rangée "+b.row+" · Position "+b.pos)}
-function vivino(id){let b=bottles.find(x=>x.id===id);let q=encodeURIComponent(b.wine+" "+b.app+" "+b.vintage);window.location.href="https://www.vivino.com/search/wines?q="+q}
+function vivino(id){let b=bottles.find(x=>x.id===id);let q=encodeURIComponent(b.wine+" "+b.app+" "+b.vintage);let url="https://www.vivino.com/search/wines?q="+q;window.open(url,"_blank","noopener,noreferrer")}
 function toast(t){let x=$( "toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2200)}
 render();
 </script></body></html>
