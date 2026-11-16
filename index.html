@@ -5,21 +5,30 @@
 <script>
 const K="ma-cave-v4",OLD="ma-cave-v3";
 let bottles=JSON.parse(localStorage.getItem(K)||"null");
-if(!bottles){bottles=JSON.parse(localStorage.getItem(OLD)||"null")||[{id:1,wine:"Château Grand Pontet",app:"Saint-Émilion Grand Cru",vintage:2019,start:2025,end:2035,zone:3,row:4,pos:2},{id:2,wine:"Château de Lascaux",app:"Pic Saint-Loup",vintage:2023,start:2026,end:2031,zone:5,row:2,pos:5}];}
+bottles=bottles.map(b=>{const zoneMap={1:8,2:1,3:2,4:3,5:4,6:5,7:6,8:7};return {...b,zone:zoneMap[b.zone]||b.zone}});if(!bottles){bottles=JSON.parse(localStorage.getItem(OLD)||"null")||[{id:1,wine:"Château Grand Pontet",app:"Saint-Émilion Grand Cru",vintage:2019,start:2025,end:2035,zone:3,row:4,pos:2},{id:2,wine:"Château de Lascaux",app:"Pic Saint-Loup",vintage:2023,start:2026,end:2031,zone:5,row:2,pos:5}];}
 
 let filter=0,subFilter=0,editId=null;
-const inferSub=(b)=>{if(b.subcategory)return b.subcategory;const m={1:{"Saint-Émilion Grand Cru":"Saint-Émilion","Saint-Émilion":"Saint-Émilion","Pomerol":"Pomerol","Pauillac":"Pauillac","Margaux":"Margaux","Saint-Julien":"Saint-Julien","Saint-Estèphe":"Saint-Estèphe","Pic Saint-Loup":"Pic Saint-Loup","Châteauneuf-du-Pape":"Châteauneuf-du-Pape","Crozes-Hermitage":"Hermitage / Crozes-Hermitage","Saint-Joseph":"Saint-Joseph","Vacqueyras":"Vacqueyras"}};return b.zone===1?"Languedoc / Roussillon":(b.zone===3&&m[1][b.app])||((b.zone===5&&m[1][b.app])||null)||"Autres";};
+const inferSub=(b)=>{if(b.subcategory)return b.subcategory;const maps={
+1:{"Pauillac":"Pauillac","Saint-Julien":"Saint-Julien","Margaux":"Margaux","Saint-Estèphe":"Saint-Estèphe"},
+2:{"Saint-Émilion Grand Cru":"Saint-Émilion","Saint-Émilion":"Saint-Émilion","Pomerol":"Pomerol"},
+3:{"Bourgogne":"Bourgogne régional / Bourgogne rouge","Maranges":"Autres"},
+4:{"Châteauneuf-du-Pape":"Châteauneuf-du-Pape","Crozes-Hermitage":"Hermitage / Crozes-Hermitage","Saint-Joseph":"Saint-Joseph","Vacqueyras":"Vacqueyras","Pic Saint-Loup":"Pic Saint-Loup"},
+5:{},
+6:{},
+7:{"Crémant de Bordeaux":"Crémant de Bordeaux"},
+8:{"Bourgogne":"Bourgogne blanc","Crémant de Bordeaux":"Bordeaux blanc"}
+};return maps[b.zone]?.[b.app]||"Autres";};
 bottles=bottles.map(b=>({...b,subcategory:inferSub(b)}));save();
-const categories=["Blancs","Bordeaux rive gauche","Bordeaux rive droite","Bourgogne","Rhône & Languedoc-Roussillon","Loire & autres régions françaises","Vins étrangers","Pétillants & champagnes"];
+const categories=["Bordeaux rive gauche","Bordeaux rive droite","Bourgogne","Rhône & Languedoc-Roussillon","Loire & autres régions françaises","Vins étrangers","Pétillants & champagnes","Blancs"];
 const subcategories={
-1:[["Bourgogne blanc",12],["Loire blanc",12],["Bordeaux blanc",6],["Rhône blanc",8],["Alsace",6],["Languedoc / Roussillon",4],["Jura",4],["Savoie",3],["Étranger",5]],
-2:[["Pauillac",10],["Saint-Julien",8],["Margaux",8],["Saint-Estèphe",6],["Médoc / Haut-Médoc",8],["Pessac-Léognan",8],["Graves",4],["Moulis / Listrac",4],["Autres / coups de cœur",4]],
-3:[["Saint-Émilion",18],["Pomerol",12],["Lalande-de-Pomerol",6],["Fronsac",5],["Castillon-Côtes de Bordeaux",7],["Côtes de Bourg / Blaye",5],["Saint-Émilion satellites",4],["Autres / coups de cœur",3]],
-4:[["Bourgogne régional / Bourgogne rouge",8],["Mercurey / Givry / Rully",10],["Savigny / Pernand / Ladoix",8],["Beaune / Volnay",8],["Pommard",6],["Gevrey-Chambertin",6],["Nuits-Saint-Georges",5],["Vosne-Romanée",3],["Chambolle-Musigny",3],["Morey-Saint-Denis",3],["Autres",null]],
-5:[["Côte-Rôtie",5],["Hermitage / Crozes-Hermitage",10],["Saint-Joseph",7],["Cornas",3],["Gigondas",6],["Vacqueyras",5],["Châteauneuf-du-Pape",8],["Cairanne / Rasteau",4],["Pic Saint-Loup",5],["Terrasses du Larzac",4],["Faugères / Minervois / autres",3]],
-6:[["Chinon",8],["Saumur / Saumur-Champigny",8],["Bourgueil / Saint-Nicolas",6],["Sancerre rouge",4],["Vouvray / Montlouis rouges/blancs",4],["Jura",6],["Savoie",4],["Sud-Ouest (Cahors, Madiran...)",8],["Alsace",4],["Provence / Corse",4],["Autres coups de cœur",4]],
-7:[["Italie – Piémont",8],["Italie – Toscane",8],["Italie – Vénétie / Valpolicella",4],["Espagne – Rioja",8],["Espagne – Ribera del Duero",5],["Espagne – Priorat / autres",4],["Portugal",5],["USA",5],["Argentine / Chili",5],["Australie / Nouvelle-Zélande",3],["Autres",5]],
-8:[["Champagne non millésimé",18],["Champagne millésimé",10],["Champagne grandes cuvées",6],["Blanc de blancs",6],["Blanc de noirs",5],["Rosé Champagne",4],["Crémant de Bordeaux",3],["Crémant de Bourgogne",3],["Crémant de Loire / Alsace",3],["Autres pétillants",2]]
+1:[["Pauillac",10],["Saint-Julien",8],["Margaux",8],["Saint-Estèphe",6],["Médoc / Haut-Médoc",8],["Pessac-Léognan",8],["Graves",4],["Moulis / Listrac",4],["Autres / coups de cœur",4]],
+2:[["Saint-Émilion",18],["Pomerol",12],["Lalande-de-Pomerol",6],["Fronsac",5],["Castillon-Côtes de Bordeaux",7],["Côtes de Bourg / Blaye",5],["Saint-Émilion satellites",4],["Autres / coups de cœur",3]],
+3:[["Bourgogne régional / Bourgogne rouge",8],["Mercurey / Givry / Rully",10],["Savigny / Pernand / Ladoix",8],["Beaune / Volnay",8],["Pommard",6],["Gevrey-Chambertin",6],["Nuits-Saint-Georges",5],["Vosne-Romanée",3],["Chambolle-Musigny",3],["Morey-Saint-Denis",3],["Autres",null]],
+4:[["Côte-Rôtie",5],["Hermitage / Crozes-Hermitage",10],["Saint-Joseph",7],["Cornas",3],["Gigondas",6],["Vacqueyras",5],["Châteauneuf-du-Pape",8],["Cairanne / Rasteau",4],["Pic Saint-Loup",5],["Terrasses du Larzac",4],["Faugères / Minervois / autres",3]],
+5:[["Chinon",8],["Saumur / Saumur-Champigny",8],["Bourgueil / Saint-Nicolas",6],["Sancerre rouge",4],["Vouvray / Montlouis rouges/blancs",4],["Jura",6],["Savoie",4],["Sud-Ouest (Cahors, Madiran...)",8],["Alsace",4],["Provence / Corse",4],["Autres coups de cœur",4]],
+6:[["Italie – Piémont",8],["Italie – Toscane",8],["Italie – Vénétie / Valpolicella",4],["Espagne – Rioja",8],["Espagne – Ribera del Duero",5],["Espagne – Priorat / autres",4],["Portugal",5],["USA",5],["Argentine / Chili",5],["Australie / Nouvelle-Zélande",3],["Autres",5]],
+7:[["Champagne non millésimé",18],["Champagne millésimé",10],["Champagne grandes cuvées",6],["Blanc de blancs",6],["Blanc de noirs",5],["Rosé Champagne",4],["Crémant de Bordeaux",3],["Crémant de Bourgogne",3],["Crémant de Loire / Alsace",3],["Autres pétillants",2]],
+8:[["Bourgogne blanc",12],["Loire blanc",12],["Bordeaux blanc",6],["Rhône blanc",8],["Alsace",6],["Languedoc / Roussillon",4],["Jura",4],["Savoie",3],["Étranger",5]]
 };
 const appellations=["Saint-Émilion Grand Cru","Saint-Émilion","Pomerol","Pauillac","Margaux","Saint-Julien","Saint-Estèphe","Pic Saint-Loup","Châteauneuf-du-Pape","Crozes-Hermitage","Saint-Joseph","Vacqueyras","Maranges","Bourgogne","Bordeaux Supérieur","Crémant de Bordeaux","Autre"];
 const $=x=>document.getElementById(x),save=()=>localStorage.setItem(K,JSON.stringify(bottles)),peak=b=>{let y=new Date().getFullYear();return y>=b.start&&y<=b.end};
